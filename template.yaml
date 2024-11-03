@@ -3,6 +3,23 @@ Transform: AWS::Serverless-2016-10-31
 Description: Streams DynamoDB table changes to EventBridge (uksb-1tthgi812) (tag:dynamodb-eventbridge-java)
 Resources:
   #DynamoDB Streams specification
+  PulseAbnormalValuesTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      TableName: pulse_abnormal_values
+      AttributeDefinitions:
+        - AttributeName: patientId
+          AttributeType: N
+        - AttributeName: timestamp
+          AttributeType: N
+      KeySchema:
+        - AttributeName: patientId
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
   PulseValuesStream:
     Type: 'AWS::DynamoDB::Table'
     Properties:
@@ -24,11 +41,11 @@ Resources:
           StreamViewType: NEW_AND_OLD_IMAGES
 
   # Define the publisher Lambda function with permissions
-  PulseJumpAnalyzer:
+  PulseAbnormalValues:
     Type: 'AWS::Serverless::Function'
     Properties:
       CodeUri: pulse-jump-analyzer
-      Handler: telran.pulse.monitoring.App::handleRequest
+      Handler: telran.pulse.monitoring.App::pulseAnalyzer
       Runtime: java17
       Architectures:
         - x86_64
@@ -46,5 +63,4 @@ Resources:
             Resource: '*'
             Action:
               - dynamodb:*
-  
  
