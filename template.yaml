@@ -44,8 +44,8 @@ Resources:
   PulseAbnormalValues:
     Type: 'AWS::Serverless::Function'
     Properties:
-      CodeUri: pulse-jump-analyzer
-      Handler: telran.pulse.monitoring.App::pulseAnalyzer
+      CodeUri: pulse-values-analyzer
+      Handler: telran.pulse.monitoring.ValuesAnalyzer::pulseAnalyzer
       Runtime: java17
       Architectures:
         - x86_64
@@ -63,4 +63,26 @@ Resources:
             Resource: '*'
             Action:
               - dynamodb:*
- 
+  PulseJumpAnalyzer:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: pulse-jump-analyzer
+      Handler: telran.pulse.monitoring.App::handleRequest
+      Runtime: java17
+      Architectures:
+        - x86_64
+      Timeout: 30
+      MemorySize: 512
+      Events:
+        TableRecordChange:
+          Type: DynamoDB
+          Properties:
+            StartingPosition: LATEST
+            Stream: !GetAtt PulseValuesStream.StreamArn
+      Policies:
+        - Statement:
+          - Effect: Allow
+            Resource: '*'
+            Action:
+              - dynamodb:*
+   
